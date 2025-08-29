@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Facebook广告成效助手 Pro</title>
+    <link rel="stylesheet" href="css/popup.css">
+</head>
+
+<body>
+    <div class="header">
+        <h1>Facebook广告成效助手 Pro</h1>
+        <p>实时获取站点的发起结账、已支付等指标</p>
+    </div>
+    
+    <div class="content">
+        <!-- 状态显示 -->
+        <div id="status" class="status info" style="display: none;"></div>
+        
+        <!-- 基本设置 -->
+        <div class="section">
+            <div class="section-title">基本设置</div>
+            
+            <div class="form-group">
+                <label class="form-label">店铺域名</label>
+                <input type="text" id="host" class="form-input" placeholder="例如: example.com" disabled>
+            </div>
+        </div>
+        
+        <!-- API配置 -->
+        <div class="section">
+          <div class="section-title">API配置</div>
+          
+          <div class="form-group">
+            <label class="form-label">当前Facebook账户</label>
+            <input type="text" id="current_account" class="form-input" placeholder="自动检测" disabled>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">API基础URL</label>
+            <input type="text" id="api_base_url" class="form-input" placeholder="https://api.yourdomain.com" disabled>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">API密钥 (可选)</label>
+            <input type="password" id="api_key" class="form-input" placeholder="输入API密钥">
+          </div>
+          
+          <div class="form-group">
+            <button id="save_config" class="btn">保存配置</button>
+          </div>
+        </div>
+        
+        <!-- 功能开关 -->
+        <div class="section">
+            <div class="section-title">功能开关</div>
+            
+            <div class="toggle-group">
+                <span class="toggle-label">启用数据上报</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="enable_reporting" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="toggle-group">
+                <span class="toggle-label">自动刷新数据</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="auto_refresh" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            
+            <div class="toggle-group">
+                <span class="toggle-label">显示状态指示器</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="show_status_indicator" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- 运行状态 -->
+        <div class="section">
+            <div class="section-title">运行状态</div>
+            
+            <div class="form-group">
+                <button id="check_status" class="btn">检查运行状态</button>
+                <button id="manual_refresh" class="btn btn-secondary" disabled>手动刷新数据</button>
+            </div>
+            
+            <div id="runtime_status" class="data-preview">
+                <strong>状态信息:</strong><br>
+                <span>点击"检查运行状态"获取详细信息</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>版本 1.0.0 | 支持发起结账、已支付等指标实时追踪</p>
+    </div>
+    
+    <script src="js/config.js"></script>
+    <script src="js/popup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+/**
+ * Facebook广告成效助手 Pro - 内容脚本样式
+ * 仅包含实际使用的样式，确保与Facebook页面完全隔离
+ */
+
+
+/* 指标徽章样式 */
+.fb-ads-helper-metric-badge {
+  top: 5px !important;
+  left: 5px !important;
+  position: absolute !important;
+  background: #1976d2 !important; /* 背景色会在JS中被覆盖 */
+  color: #ffffff !important;
+  padding: 4px 8px !important;
+  border-radius: 12px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif !important;
+  white-space: nowrap !important;
+  z-index: 10001 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+  pointer-events: none !important;
+  line-height: 1.3 !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  backdrop-filter: blur(4px) !important;
+  transform: translateZ(0) !important;
+  user-select: none !important;
+}
+
+/* Toast通知样式 */
+.fb-ads-helper-toast {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  background: #fff !important;
+  border: 1px solid #ddd !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
+  z-index: 10000 !important;
+  font-size: 12px !important;
+  opacity: 0 !important;
+  transform: translateX(20px) !important;
+  transition: all 0.3s ease !important;
+  /* 防止与Facebook样式冲突 */
+  all: initial;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.fb-ads-helper-toast[data-expired="false"] {
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+}
