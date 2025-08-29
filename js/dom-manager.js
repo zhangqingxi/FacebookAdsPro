@@ -58,7 +58,7 @@ const DOMManager = {
 
         let renderedCount = 0;
         data.forEach(item => {
-            const id = item.id || item.campaign_id || item.adset_id || item.ad_id;
+            const id = item.id;
             if (!id) {
                 window.Logger.warn('数据项缺少ID，跳过:', item);
                 return;
@@ -91,7 +91,7 @@ const DOMManager = {
      * @returns {Element|null} 找到的行元素或null
      */
     findRowElementById(id) {
-        const selector = `[data-surface*="table_row:${id}"]`;
+        const selector = `[data-surface="/am/table/table_row:${id}unit"]`;
         return document.querySelector(selector);
     },
 
