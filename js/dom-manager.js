@@ -134,21 +134,25 @@ const DOMManager = {
                 window.Logger.warn(`未找到ID ${rowId} 的"结账"单元格`);
             }
         }
-
-        if (data.payment_count && data.payment_count > 0) {
-            const paymentCell = row.querySelector(`[data-surface="${surfaceTemplates.payment}"]`);
-            if (paymentCell) {
-                this.renderMetricInTargetCell(paymentCell, data.payment_count, 'payment', '💳');
+		
+		// 2. 渲染"成效"标注
+        if (data.payment_count > 0) {
+            const cell = row.querySelector(`[data-surface="${surfaceTemplates.payment}"]`);
+            if (cell) {
+                this.renderMetricInTargetCell(cell, data.payment_count, 'payment', '🛍️');
             } else {
-                window.Logger.warn(`未找到ID ${rowId} 的"支付"单元格`);
+                window.Logger.warn(`未找到ID ${rowId} 的"成效"单元格`);
             }
+        }
 
+		// 3. 渲染"广告花费回报 (ROAS) - 购物"标注
+        if (data.payment_amount && data.payment_amount > 0) {
             const amountSpentCell = row.querySelector(`[data-surface="${surfaceTemplates.amountSpent}"]`);
             const roasCell = row.querySelector(`[data-surface="${surfaceTemplates.roas}"]`);
             if (amountSpentCell && roasCell) {
                 const amountSpentValue = this.parseCurrencyToFloat(amountSpentCell.textContent);
                 if (amountSpentValue > 0) {
-                    const calculatedROAS = (data.payment_count / amountSpentValue).toFixed(2);
+                    const calculatedROAS = (data.payment_amount / amountSpentValue).toFixed(2);
                     this.renderMetricInTargetCell(roasCell, calculatedROAS, 'roas', '📈');
                 }
             }else{

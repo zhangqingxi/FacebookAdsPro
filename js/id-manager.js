@@ -52,7 +52,7 @@ const IDManager = {
   
   /**
    * 更新可见ID集合
-   * @description 滚动时直接清理所有标注，获取当前ID并重新请求API渲柕
+   * @description 维护当前窗口可见的ID集合，用于API请求
    * @async
    */
   async updateVisibleIds() {
