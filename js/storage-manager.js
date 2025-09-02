@@ -3,7 +3,7 @@
  * @description 提供统一的Chrome Storage API封装，包括配置缓存、
  *              功能开关管理、API配置管理等功能
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 /**
@@ -17,14 +17,14 @@ const StorageManager = {
    * @private
    */
   _configCache: null,
-  
+
   /**
    * 缓存时间戳
    * @type {number|null}
    * @private
    */
   _cacheTimestamp: null,
-  
+
   /**
    * 缓存过期时间（毫秒）
    * @type {number}
@@ -68,37 +68,37 @@ const StorageManager = {
       }
       return this._configCache;
     }
-    
+
     const res = await this.get(['auto_refresh', 'show_status_indicator', 'fb_plugin_status', 'features']);
-    
+
     if (window.Logger) {
       window.Logger.info('从存储读取开关配置:', res);
     }
-    
+
     const defaultConfig = {
       auto_refresh: window.FB_HELPER_CONFIG?.FEATURES?.AUTO_REFRESH ?? true,
       show_status_indicator: window.FB_HELPER_CONFIG?.FEATURES?.SHOW_STATUS_INDICATOR ?? true,
       enable_reporting: window.FB_HELPER_CONFIG?.FEATURES?.ENABLE_REPORTING ?? true
     };
-    
+
     const featuresObj = res.features || {};
-    
+
     const finalConfig = {
-      auto_refresh: featuresObj.auto_refresh !== undefined ? featuresObj.auto_refresh : 
-                        (res.auto_refresh !== undefined ? res.auto_refresh : defaultConfig.auto_refresh),
-      show_status_indicator: featuresObj.show_status_indicator !== undefined ? featuresObj.show_status_indicator : 
-                            (res.show_status_indicator !== undefined ? res.show_status_indicator : defaultConfig.show_status_indicator),
-      enable_reporting: featuresObj.enable_reporting !== undefined ? featuresObj.enable_reporting : 
-                        (res.fb_plugin_status === '1' ? true : (res.fb_plugin_status === '0' ? false : defaultConfig.enable_reporting))
+      auto_refresh: featuresObj.auto_refresh !== undefined ? featuresObj.auto_refresh :
+        (res.auto_refresh !== undefined ? res.auto_refresh : defaultConfig.auto_refresh),
+      show_status_indicator: featuresObj.show_status_indicator !== undefined ? featuresObj.show_status_indicator :
+        (res.show_status_indicator !== undefined ? res.show_status_indicator : defaultConfig.show_status_indicator),
+      enable_reporting: featuresObj.enable_reporting !== undefined ? featuresObj.enable_reporting :
+        (res.fb_plugin_status === '1' ? true : (res.fb_plugin_status === '0' ? false : defaultConfig.enable_reporting))
     };
-    
+
     this._configCache = finalConfig;
     this._cacheTimestamp = now;
-    
+
     if (window.Logger) {
       window.Logger.success('最终生效的功能开关:', finalConfig);
     }
-    
+
     return finalConfig;
   },
 
@@ -115,13 +115,13 @@ const StorageManager = {
     await this.set({
       features: { ...(existing.features || {}), [featureName]: value }
     });
-    
+
     // 更新旧格式（兼容性）
     const legacyUpdates = {};
     if (featureName === 'auto_refresh') legacyUpdates.auto_refresh = value;
     if (featureName === 'show_status_indicator') legacyUpdates.show_status_indicator = value;
     if (featureName === 'enable_reporting') legacyUpdates.fb_plugin_status = value ? '1' : '0';
-    
+
     if (Object.keys(legacyUpdates).length > 0) {
       await this.set(legacyUpdates);
     }

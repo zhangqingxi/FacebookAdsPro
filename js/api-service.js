@@ -2,25 +2,19 @@
  * Facebook广告成效助手 Pro - API服务模块
  * @description 处理与后台脚本的通信和数据获取
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 const APIService = {
     /**
      * 获取指标数据
-     * @param {string} accountId 账户ID
-     * @param {Object} dateRange 日期范围
-     * @param {Object} idCollections ID集合
+      * @param {Object} apiParams - API请求参数
      * @returns {Promise<Array>} API返回的数据数组
      */
-    async getMetricsData() {
-        const accountId = window.StateManager.get('accountId');
-        const dateRange = window.StateManager.get('dateRange');
-        const idCollections = window.IDManager.collectForAPI();
-
+    async getMetricsData(apiParams) {
         return new Promise((resolve, reject) => {
             chrome.runtime.sendMessage({
                 message: 'GetMetricsData',
-                data: { accountId, dateRange, ...idCollections }
+                data: apiParams
             }, (response) => {
                 if (chrome.runtime.lastError) {
                     reject(new Error(chrome.runtime.lastError.message));

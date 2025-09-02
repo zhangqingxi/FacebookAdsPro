@@ -2,7 +2,7 @@
  * Facebook广告成效助手 Pro - 后台脚本
  * @description Chrome扩展的后台服务工作者，负责API请求、消息处理和存储管理
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 // 导入config脚本
@@ -189,11 +189,13 @@ class MetricsService {
    * 获取广告指标数据
    * @param {string} accountId - 广告账户ID
    * @param {Object} dateRange - 日期范围对象，包含start和end
-   * @param {Object} idCollections - ID集合，包含campaignIds、adsetIds和adIds
+   * @param {Object} campaignIds - 广告系列ID
+   * @param {Object} adsetIds - 广告组ID
+   * @param {Object} adIds - 广告ID
    * @returns {Promise<Object[]>} 指标数据数组
    * @throws {Error} 当缺少必要配置或请求失败时抛出错误
    */
-  static async getData(accountId, dateRange, idCollections) {
+  static async getData(accountId, dateRange, campaignIds, adsetIds, adIds) {
     const config = await ApiConfigManager.getConfig();
     if (!config.base_url) {
       throw new Error('请在插件中配置API基础URL');
@@ -204,9 +206,9 @@ class MetricsService {
       account_id: accountId,
       start_date: dateRange.start,
       end_date: dateRange.end,
-      campaign_ids: idCollections?.campaignIds || [],
-      adset_ids: idCollections?.adsetIds || [],
-      ad_ids: idCollections?.adIds || [],
+      campaign_ids: campaignIds,
+      adset_ids: adsetIds,
+      ad_ids: adIds,
       timestamp: new Date().toISOString(),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     };
@@ -280,8 +282,7 @@ class MessageHandler {
         throw new Error('缺少accountId参数');
       }
 
-      const idCollections = { campaignIds, adsetIds, adIds };
-      const metrics = await MetricsService.getData(accountId, dateRange, idCollections);
+      const metrics = await MetricsService.getData(accountId, dateRange, campaignIds, adsetIds, adIds);
 
       sendResponse({
         status: 'success',

@@ -2,7 +2,7 @@
  * 统一日志系统 - 提供统一的日志输出和显示控制
  * @description 集成日志输出、Toast提示等功能，支持不同级别的日志和显示模式
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 /**
@@ -16,12 +16,12 @@ const Logger = {
    */
   icons: {
     success: '✅',
-    error: '❌', 
+    error: '❌',
     warning: '⚠️',
     info: 'ℹ️',
     important: '🔔'
   },
-  
+
   /**
    * 获取图标
    * @param {string} name - 图标名称
@@ -38,7 +38,7 @@ const Logger = {
   get debugMode() {
     return window.FB_HELPER_CONFIG?.FEATURES?.DEBUG_MODE ?? false;
   },
-  
+
   /**
    * 获取详细日志模式状态
    * @returns {boolean} 详细日志模式是否开启
@@ -57,7 +57,7 @@ const Logger = {
       console.log(`[FB-Helper] ${this.getIcon('info')} ${message}`, ...args);
     }
   },
-  
+
   /**
    * 输出成功级别日志
    * @param {string} message - 日志消息
@@ -68,7 +68,7 @@ const Logger = {
       console.log(`[FB-Helper] ${this.getIcon('success')} ${message}`, ...args);
     }
   },
-  
+
   /**
    * 输出警告级别日志
    * @param {string} message - 日志消息
@@ -79,7 +79,7 @@ const Logger = {
       console.warn(`[FB-Helper] ${this.getIcon('warning')} ${message}`, ...args);
     }
   },
-  
+
   /**
    * 输出错误级别日志
    * @param {string} message - 日志消息
@@ -90,7 +90,7 @@ const Logger = {
       console.error(`[FB-Helper] ${this.getIcon('error')} ${message}`, ...args);
     }
   },
-  
+
   /**
    * 输出重要级别日志
    * @param {string} message - 日志消息
@@ -101,7 +101,7 @@ const Logger = {
       console.log(`[FB-Helper] ${this.getIcon('important')} ${message}`, ...args);
     }
   },
-  
+
   /**
    * 显示Toast提示
    * @param {string} text - 要显示的文本
@@ -114,14 +114,14 @@ const Logger = {
     if (!window.StateManager?.get('features')?.show_status_indicator) {
       return;
     }
-    
+
     // 清理已过期的toast
     this.cleanupExpiredToasts();
-    
+
     // 获取当前有效的toast数量来计算位置
     const activeToasts = document.querySelectorAll('.fb-ads-helper-toast[data-expired="false"]');
     const topOffset = 20 + (activeToasts.length * 65); // 增加间距避免重叠
-    
+
     const toast = document.createElement('div');
     toast.className = 'fb-ads-helper-toast';
     toast.dataset.expired = 'false';
@@ -148,24 +148,24 @@ const Logger = {
     `;
     toast.textContent = text;
     document.body.appendChild(toast);
-    
+
     // 动画进入
     requestAnimationFrame(() => {
       toast.style.opacity = '1';
       toast.style.transform = 'translateX(0)';
     });
-    
+
     // 设置过期定时器
     setTimeout(() => {
       this.removeToast(toast);
     }, duration);
-    
+
     // 重新计算所有toast位置（避免动态移除时的位置跳跃）
     setTimeout(() => {
       this.recalculateToastPositions();
     }, 100);
   },
-  
+
   /**
    * 移除Toast元素
    * @param {Element} toast - 要移除的Toast元素
@@ -173,11 +173,11 @@ const Logger = {
    */
   removeToast(toast) {
     if (!toast || !toast.parentNode) return;
-    
+
     toast.dataset.expired = 'true';
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(30px)';
-    
+
     setTimeout(() => {
       if (toast.parentNode) {
         toast.remove();
@@ -186,7 +186,7 @@ const Logger = {
       }
     }, 300);
   },
-  
+
   /**
    * 清理已过期的Toast元素
    * @description 移除所有已过期和超时的Toast元素，防止内存泄漏
@@ -198,7 +198,7 @@ const Logger = {
         toast.remove();
       }
     });
-    
+
     // 清理超时的toast（防止内存泄漏）
     const allToasts = document.querySelectorAll('.fb-ads-helper-toast');
     const now = Date.now();
@@ -209,7 +209,7 @@ const Logger = {
       }
     });
   },
-  
+
   /**
    * 重新计算Toast位置
    * @description 在Toast被移除后，重新计算剩余Toast的垂直位置，防止位置跳跃

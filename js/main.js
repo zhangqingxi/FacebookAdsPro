@@ -2,7 +2,7 @@
  * Facebook广告成效助手 Pro - 主脚本 (入口文件)
  * @description 在Facebook广告管理页面注入脚本，协调各个模块的初始化和运行
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 (function () {
@@ -30,7 +30,7 @@
         const checkElements = () => {
           const tableExists = document.querySelector('[role="table"]');
           const dateRangeExists = document.querySelector('[data-surface="/am/table/stats_range"]');
-          
+
           if (tableExists && dateRangeExists) {
             resolve(true);
           } else {
@@ -43,7 +43,7 @@
 
     try {
       window.Logger.important('Facebook广告成效助手 Pro 开始初始化...');
-      
+
       // 等待关键元素加载
       await waitForElements();
       window.Logger.success('关键元素已加载，继续初始化...');
@@ -97,7 +97,7 @@
         }
 
         window.Logger.info('收到来自Popup的手动刷新命令');
-        window.DataManager.refreshData(true); // 传入true表示手动刷新
+        window.DataManager.handleDataUpdate(true);
         sendResponse({ status: 'success', message: '手动刷新已启动' });
         return true;
       }

@@ -2,7 +2,7 @@
  * Facebook广告成效助手 Pro - 全局状态管理器
  * @description 管理插件的所有运行时状态
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 const StateManager = {
@@ -23,14 +23,11 @@ const StateManager = {
         lastUpdateAt: null,            // 最后更新时间
         consecutiveErrors: 0,          // 连续错误次数
         consecutiveEmptyData: 0,       // 连续空数据次数
-        idCollections: {               // ID集合管理
-            visible: new Set(),          // 当前可见的ID
-            lastUpdate: null             // 最后更新时间
-        },
-        parentIds: {                   // 父级ID（用于层级关系）
-            campaignId: null,
-            adsetId: null
-        }
+        campaignIds: [], // 广告系列ID集合
+        adsetIds: [], // 广告组系列ID集合
+        adIds: [], // 广告ID集合
+        lastApiParams: null,           // 上一次API请求的参数
+        lastApiRequestTimestamp: null, // 上一次API请求的时间戳
     },
 
     /**
@@ -63,7 +60,9 @@ const StateManager = {
      * 重置与数据相关的状态，通常在页面切换时调用
      */
     resetDataState() {
-        this.state.idCollections.visible.clear();
+        this.state.campaignIds = [];
+        this.state.adsetIds = [];
+        this.state.adIds = [];
         this.state.currentData = null;
         this.state.consecutiveErrors = 0;
         this.state.consecutiveEmptyData = 0;

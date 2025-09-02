@@ -2,7 +2,7 @@
  * 区域管理器 - 智能监听页面切换和内容变化
  * @description 使用 MutationObserver 统一监听所有页面变化（区域切换和数据刷新）
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 const AreaManager = {
     lastArea: null, // 上一次的页面类型
@@ -92,33 +92,17 @@ const AreaManager = {
         // 【情况二：数据刷新】页面类型未变，但DOM发生变化 (e.g., 排序, 过滤, 日期更改)
         if (newArea && newArea === this.lastArea) {
 
-            // --- 第一步：优先验证日期范围 ---
             const newDateRange = window.Utils.getDateRange();
             const lastDateRange = window.StateManager.get('dateRange');
-            const dateHasChanged = newDateRange.start !== lastDateRange.start || newDateRange.end !== lastDateRange.end;
 
-            if (dateHasChanged) {
-                window.Logger.important(`验证通过：检测到【日期范围变更】，执行刷新！`);
-
-                // 日期发生变化，更新dateRange
+            if (newDateRange && lastDateRange && (newDateRange.start !== lastDateRange.start || newDateRange.end !== lastDateRange.end)) {
+                window.Logger.important(`检测到【日期范围变更】，执行刷新！`);
                 window.StateManager.set('dateRange', newDateRange);
-                
-                await window.DataManager.handleDataUpdate();
-                return;
+            } else {
+                window.Logger.important(`检测到【列表內容刷新】，执行刷新！`);
             }
 
-            // --- 第二步：如果日期未变，再验证ID集合 ---
-            const lastVisibleIds = window.StateManager.get('idCollections').lastVisibleIds || new Set();
-            const currentVisibleIds = new Set(window.IDManager.extractCurrentPageIds());
-            const idsHaveChanged = !(currentVisibleIds.size === lastVisibleIds.size && [...currentVisibleIds].every(id => lastVisibleIds.has(id)));
-
-            if (idsHaveChanged) {
-                window.Logger.important(`验证通过：检测到【列表内容刷新】，执行刷新！`);
-                
-                // 此时日期没变，不需更新dateRange
-                await window.DataManager.handleDataUpdate();
-                return;
-            }
+            await window.DataManager.handleDataUpdate()
         }
     },
 
@@ -139,12 +123,15 @@ const AreaManager = {
             dateRange: window.Utils.getDateRange()
         });
 
-        // 更新父级ID
-        this.updateParentIds();
-
         // 清理旧数据
         window.StateManager.resetDataState();
         window.DOMManager.clearAllAnnotations();
+
+        // 重置索引
+        window.DOMManager.resetColumnIndices();
+
+        // 清理API缓存
+        window.StateManager.set('lastApiParams', null);
 
         // 重新初始化滚动监听
         window.DOMManager.initScrollListener();
@@ -156,26 +143,6 @@ const AreaManager = {
             window.DataManager.startAutoRefresh();
         }, 500); // 500ms 延迟
     },
-
-    /**
-     * 更新父级ID
-     * @description 根据当前页面类型更新父级系列和组ID，用于API请求时的层级关系
-     */
-    updateParentIds() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentTab = window.StateManager.get('currentTab');
-        let parentIds = { campaignId: null, adsetId: null };
-
-        if (currentTab === 'adset' || currentTab === 'ad') {
-            parentIds.campaignId = urlParams.get('selected_campaign_ids');
-        }
-        if (currentTab === 'ad') {
-            parentIds.adsetId = urlParams.get('selected_adset_ids');
-        }
-
-        window.StateManager.set('parentIds', parentIds);
-        window.Logger.info('上级ID更新:', parentIds);
-    }
 };
 
 // 全局导出，供其他模块使用

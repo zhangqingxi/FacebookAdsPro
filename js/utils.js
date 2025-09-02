@@ -2,7 +2,7 @@
  * Facebook广告成效助手 Pro - 工具函数模块
  * @description 提供通用的工具方法，支持日期解析、页面类型检测等
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 const Utils = {
@@ -48,7 +48,7 @@ const Utils = {
             }
 
             // 解析日期文本中的日期范围
-            // 支持多种格式: "过去 30 天：2025年7月28日 – 2025年8月26日", "2025年7月28日 – 2025年8月26日" 等
+            // 支持多种格式: "过去 30 天：2025年7月28日 – 2025年8月26日", "2025年7月28日 – 2025年8月26日" "今天: 2025年9月2日" 等
             const dateRange = this.parseDateRangeFromText(dateText);
             if (dateRange) {
                 window.Logger.success(`成功解析日期范围: ${dateRange.start} 到 ${dateRange.end}`);
@@ -64,14 +64,15 @@ const Utils = {
     },
 
     /**
-     * 从文本中解析日期范围
-     * @param {string} text - 包含日期范围的文本
+     * 从文本中解析日期范围或单个日期
+     * @param {string} text - 包含日期信息的文本
      * @returns {Object|null} 包含start和end的日期对象
      */
     parseDateRangeFromText(text) {
         if (!text) return null;
-        // 多种日期格式的正则表达式
+        // 多种日期格式的正则表达式 (范围优先，单日其次)
         const patterns = [
+            // --- 日期范围格式 ---
             // 中文格式: "2025年7月28日 – 2025年8月26日"
             /(\d{4})年(\d{1,2})月(\d{1,2})日\s*[–—-]\s*(\d{4})年(\d{1,2})月(\d{1,2})日/,
             // 英文格式: "Jul 28, 2025 – Aug 26, 2025"
@@ -79,34 +80,55 @@ const Utils = {
             // ISO格式: "2025-07-28 – 2025-08-26"
             /(\d{4})-(\d{1,2})-(\d{1,2})\s*[–—-]\s*(\d{4})-(\d{1,2})-(\d{1,2})/,
             // 短格式: "7/28/2025 – 8/26/2025"
-            /(\d{1,2})\/(\d{1,2})\/(\d{4})\s*[–—-]\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/
+            /(\d{1,2})\/(\d{1,2})\/(\d{4})\s*[–—-]\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/,
+
+            // --- 单个日期格式 (新增) ---
+            // 中文格式: "2025年9月2日"
+            /(\d{4})年(\d{1,2})月(\d{1,2})日/,
+            // 英文格式: "Sep 2, 2025"
+            /(\w{3})\s+(\d{1,2}),\s+(\d{4})/,
+            // ISO格式: "2025-09-02"
+            /(\d{4})-(\d{1,2})-(\d{1,2})/,
+            // 短格式: "9/2/2025"
+            /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
         ];
         for (const pattern of patterns) {
             const match = text.match(pattern);
             if (match) {
                 try {
                     let startDate, endDate;
-                    
-                    if (pattern === patterns[0]) {
-                        // 中文格式处理
+
+                    // --- 范围日期处理 ---
+                    if (pattern === patterns[0]) { // 中文范围
                         startDate = new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
                         endDate = new Date(parseInt(match[4]), parseInt(match[5]) - 1, parseInt(match[6]));
-                    } else if (pattern === patterns[1]) {
-                        // 英文格式处理
+                    } else if (pattern === patterns[1]) { // 英文范围
                         startDate = new Date(`${match[1]} ${match[2]}, ${match[3]}`);
                         endDate = new Date(`${match[4]} ${match[5]}, ${match[6]}`);
-                    } else if (pattern === patterns[2]) {
-                        // ISO格式处理
+                    } else if (pattern === patterns[2]) { // ISO范围
                         startDate = new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
                         endDate = new Date(parseInt(match[4]), parseInt(match[5]) - 1, parseInt(match[6]));
-                    } else if (pattern === patterns[3]) {
-                        // 短格式处理
+                    } else if (pattern === patterns[3]) { // 短格式范围
                         startDate = new Date(parseInt(match[3]), parseInt(match[1]) - 1, parseInt(match[2]));
                         endDate = new Date(parseInt(match[6]), parseInt(match[4]) - 1, parseInt(match[5]));
                     }
-                    // 验证日期有效性
+                    // --- 单个日期处理 (新增) ---
+                    else if (pattern === patterns[4]) { // 中文单日
+                        const singleDate = new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+                        startDate = endDate = singleDate;
+                    } else if (pattern === patterns[5]) { // 英文单日
+                        const singleDate = new Date(`${match[1]} ${match[2]}, ${match[3]}`);
+                        startDate = endDate = singleDate;
+                    } else if (pattern === patterns[6]) { // ISO单日
+                        const singleDate = new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+                        startDate = endDate = singleDate;
+                    } else if (pattern === patterns[7]) { // 短格式单日
+                        const singleDate = new Date(parseInt(match[3]), parseInt(match[1]) - 1, parseInt(match[2]));
+                        startDate = endDate = singleDate;
+                    }
+
+                    // 验证日期有效性并格式化返回
                     if (startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-                        // 使用本地日期格式，避免时区问题
                         const formatLocalDate = (date) => {
                             const year = date.getFullYear();
                             const month = String(date.getMonth() + 1).padStart(2, '0');

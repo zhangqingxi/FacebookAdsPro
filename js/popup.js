@@ -2,7 +2,7 @@
  * Facebook广告成效助手 Pro - Popup脚本
  * @description 扩展的弹出页面脚本，管理所有用户交互和设置界面
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 (function () {
@@ -511,7 +511,7 @@
           // 3秒后再次检查，最多重试3次
           this.retryCount = (this.retryCount || 0) + 1;
           if (this.retryCount <= 3) {
-            setTimeout(() => this.checkRuntimeStatus(), 3000);
+            setTimeout(() => this.checkRuntimeStatus(), 10000);
           } else {
             this.renderErrorStatus('初始化超时，请刷新页面重试');
             Utils.showStatus('初始化超时', 'error');

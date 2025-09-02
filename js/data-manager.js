@@ -2,7 +2,7 @@
  * Facebook广告成效助手 Pro - 数据管理模块
  * @description 负责数据获取、定时刷新等核心功能
  * @author Qasim
- * @version 1.0.0
+ * @version 1.0.1
  */
 const DataManager = {
     /**
@@ -11,7 +11,7 @@ const DataManager = {
      */
     async initialize() {
         window.Logger.important(`业务信息获取完成: ${window.StateManager.get('currentTab')} page, account: ${window.StateManager.get('accountId')}`);
-        
+
         if (window.StateManager.get('features').show_status_indicator) {
             window.Logger.toast('广告成效助手插件已加载', 'success');
         }
@@ -25,41 +25,93 @@ const DataManager = {
 
     /**
      * 统一的数据更新处理器
+     * @param {boolean} isManual - 是否为手动触发，手动触发时重置错误计数
      * @description 收集ID，请求API，然后渲染页面
      */
-    async handleDataUpdate() {
-        await window.IDManager.updateVisibleIds();
+    async handleDataUpdate(isManual = false) {
         if (window.StateManager.get('features').enable_reporting) {
-            await this.refreshData(false);
+            await this._refreshData(isManual);
         }
     },
 
     /**
-     * 刷新数据
+     * @private 检查缓存请求参数，同一段时间内，同参数跳过API请求
+     * @param {Object} currentParams - 当前准备请求的参数
+     * @returns {boolean}
+     */
+    _shouldSkipApiRequest(currentParams) {
+        const lastParams = window.StateManager.get('lastApiParams');
+        const lastTimestamp = window.StateManager.get('lastApiRequestTimestamp');
+        const CACHE_DURATION = 5 * 60 * 1000; // 5分钟
+
+        if (!lastParams || !lastTimestamp) return false; // 沒有缓存
+
+        if (Date.now() - lastTimestamp > CACHE_DURATION) return false; // 缓存过期
+        
+        if (JSON.stringify(lastParams) === JSON.stringify(currentParams)) {
+            window.Logger.important('API请求参数在5分钟内无变化，跳过本次请求。');
+            return true;
+        }
+
+        return false;
+    },
+
+    /**
+     * @private 内部函数：刷新数据
      * @param {boolean} isManual - 是否为手动触发，手动触发时重置错误计数
      * @description 从 API 获取最新的指标数据并更新页面显示
      */
-    async refreshData(isManual = false) {
+    async _refreshData(isManual = false) {
         if (window.StateManager.get('isRefreshing')) {
             window.Logger.info('数据刷新进行中，跳过本次请求');
             return;
         }
 
+        // 不在facebook页面，跳过请求
+        if (window.Utils.getCurrentTab() == null) {
+            window.Logger.ware('已离开Facebook广告管理页面');
+            return;
+        }
+
         window.StateManager.set('isRefreshing', true);
+
         if (isManual) {
             // 手动刷新时重置错误和空数据计数器，以立即尝试
-            window.StateManager.set('consecutiveErrors', 0);
-            window.StateManager.set('consecutiveEmptyData', 0);
+            window.StateManager.update({ consecutiveErrors: 0, consecutiveEmptyData: 0 });
         }
 
         try {
-            const totalIds = window.IDManager.getVisibleIdsCount();
+            // 1. 调用IDManager更新ID状态，并接收返回的ID参数
+            const idParams = await window.IDManager.updateIdState();
+
+            // 2. 组合完整的API请求参数
+            const currentApiParams = {
+                ...idParams,
+                accountId: window.StateManager.get('accountId'),
+                dateRange: window.StateManager.get('dateRange'),
+            };
+
+            // 3. 检查是否有ID上报
+            const totalIds = currentApiParams.campaignIds.length + currentApiParams.adsetIds.length + currentApiParams.adIds.length;
             if (totalIds === 0) {
                 window.Logger.warn('没有可见的ID，跳过API请求');
+                // 清空数据并更新展示
+                window.StateManager.set('currentData', null);
+                await this.updatePageDisplay();
                 return;
             }
 
-            const metrics = await window.APIService.getMetricsData();
+            // 4. 检查短时间内重复请求
+            if (!isManual && this._shouldSkipApiRequest(currentApiParams)) {
+                return;
+            }
+
+            // 5. 执行API请求
+            const metrics = await window.APIService.getMetricsData(currentApiParams);
+
+            // 6. 请求成功后，更新缓存
+            window.StateManager.set('lastApiParams', currentApiParams);
+            window.StateManager.set('lastApiRequestTimestamp', Date.now());
 
             if (!metrics || metrics.length === 0) {
                 window.Logger.warn('API返回空数据');
@@ -74,11 +126,6 @@ const DataManager = {
                 });
             }
             await this.updatePageDisplay();
-
-            // 更新ID快照
-            const newIdCollections = window.StateManager.get('idCollections');
-            newIdCollections.lastVisibleIds = new Set(newIdCollections.visible);
-            window.StateManager.set('idCollections', newIdCollections);
         } catch (error) {
             window.Logger.error('数据刷新失败:', error);
             window.StateManager.set('consecutiveErrors', window.StateManager.get('consecutiveErrors') + 1);
@@ -99,9 +146,8 @@ const DataManager = {
     async updatePageDisplay() {
         await window.DOMManager.renderDataAnnotations();
         if (window.StateManager.get('features').show_status_indicator) {
-            const visibleCount = window.IDManager.getVisibleIdsCount();
             const dataCount = window.StateManager.get('currentData') ? window.StateManager.get('currentData').length : 0;
-            window.Logger.toast(`数据更新完成 (可见:${visibleCount}, 数据:${dataCount})`, 'success', 2000);
+            window.Logger.toast(`数据更新完成 (数据:${dataCount})`, 'success', 2000);
         }
     },
 
@@ -131,7 +177,7 @@ const DataManager = {
             }
 
             window.Logger.info('执行定时刷新...');
-            await this.refreshData(false);
+            await this.handleDataUpdate();
 
             // 计算下一次刷新的间隔
             const nextInterval = this.calculateNextInterval();
